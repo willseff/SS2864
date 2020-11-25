@@ -25,7 +25,6 @@ data <- Boston
 
 dev.off() 
 hist(data$crim,breaks=200)
-
 plot(Boston$crim,Boston$medv)
 
 # apply log transformation
@@ -41,21 +40,11 @@ data$black <- NULL
 unique(Boston$zn)
 # 26 unique values
 dev.off()
-hist(log(Boston$crim))
-
 
 # rad variable (integer)
 
 Boston$tax
 unique(Boston$rad)
-# plot comparing two features
-
-dev.off()
-p <- ggplot(data=Boston)
-
-p + geom_point(aes(x=tax, y=rad)) 
-
-summary(lm(data$tax~data$rad))
 
 # correlation plot
 dev.off()
@@ -65,17 +54,41 @@ corrplot(cor(Boston), method='color', type='lower', diag=FALSE, cl.pos="r",
 mtext("Correlation Plot of Boston Dataset", at=6, line=2, cex=1)
 
 # quick anova analysis 
-summary(aov(data=Boston, medv ~ .^2 ))
+summary(aov(data=data, medv ~ .^2 ))
 
 # interaction plots
 dev.off()
 bins <- c('low','medium','high')
 
-Boston.c <- data.frame(apply(Boston,2,function (x) cut(x,3,bins))) 
+Boston.c <- data.frame(apply(data,2,function (x) cut(x,3,bins))) 
 
 attach(Boston.c)
-interaction.plot(factor(indus,level=c('low','medium','high')) ,lstat,Boston$medv)
 
-interaction.plot(factor(indus,level=c('low','medium','high')) ,lstat,Boston$medv)
-age.c
+ord <- function(x){
+  return(factor(x,level=c('low','medium','high')))
+}
+
+par(mfrow = c(2,2), mar = c(4,4,3,3))
+mtext("Interesting Interactions", at=0, line=1, cex=1)
+interaction.plot(ord(indus), 
+                 lstat,
+                 Boston$medv,
+                 xlab='indus')
+
+interaction.plot(ord(crim),
+                 ord(rm),
+                 Boston$medv,
+                 xlab='crim')
+
+interaction.plot(ord(crim),
+                 ord(lstat),
+                 Boston$medv,
+                 xlab='crim')
+
+interaction.plot(ord(nox),
+                 Boston$chas,
+                 Boston$medv,
+                 xlab='rad')
+
+mtext("Interesting Interactions", at=0, line=18, cex=1)
 
