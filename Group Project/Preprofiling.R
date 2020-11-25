@@ -22,36 +22,29 @@ mapply(function(x,y) hist(x,main=y),
 data <- Boston
 # feature engineering / profiling of each variable
 # crim variable
-
 dev.off() 
-hist(data$crim,breaks=200)
+par(mfrow=c(2,1), mar=c(4,5,2,2))
+hist(Boston$crim,breaks=200)
 plot(Boston$crim,Boston$medv)
 
 # apply log transformation
 data$crim <- sapply(Boston[,'crim'],function (x) log(x))
 hist(data$crim)
-
-plot(data$crim,data$medv)
+plot(data$crim,data$medv, main='medv vs crim')
 
 # drop black feature, unsure how to use parabolic transformation and uninvertible function
 data$black <- NULL
 
-# zn variable
-unique(Boston$zn)
-# 26 unique values
-dev.off()
-
-# rad variable (integer)
-
-Boston$tax
-unique(Boston$rad)
-
 # correlation plot
 dev.off()
-corrplot(cor(Boston), method='color', type='lower', diag=FALSE, cl.pos="r", 
+corrplot(cor(data), method='color', type='lower', diag=FALSE, cl.pos="r", 
          title = , addCoef.col = "black",
          tl.srt = 90, number.cex = .6)
 mtext("Correlation Plot of Boston Dataset", at=6, line=2, cex=1)
+
+# individual plots
+
+plot(data$medv,data$rm, main='')
 
 # quick anova analysis 
 summary(aov(data=data, medv ~ .^2 ))
