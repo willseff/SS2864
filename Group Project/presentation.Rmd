@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # import libraries
 library(MASS)
 library(corrplot)
@@ -17,13 +17,12 @@ library(ggplot2)
 library(dplyr)
 library(ggpubr)
 
-data <- Boston
-
 ```
 
 ## Simple Preprofiling
 
 ```{r}
+data <- Boston
 summary(Boston)
 head(Boston)
 dim(Boston)
@@ -45,7 +44,7 @@ lw <- list(crim = 'Crime Rate',
            rad = 'Accessibility to Highways',
            tax = 'Property Tax Rate / $ 10 000',
            lstat = 'Percent Lower Status',
-           medv = 'Median value of Homes')
+           medv = 'Median Value of Homes')
 
 lw['indus']
 
@@ -135,7 +134,7 @@ ggarrange(two.plot('rm','medv'),
 
 A ANOVA model was built with all the possible interactions to look for interesting interactions
 ```{r}
-summary(aov(data=data, medv ~ .^2 ))
+summary(aov(data=data, medv ~ .^2 )) %>% invisible()
 ```
 
 ## Interaction Plots
@@ -178,7 +177,6 @@ mtext("Interesting Interactions", at=0, line=18, cex=1)
 ```
 ## 3 Variable Plots
 ```{r}
-
 colnames(data.c) <- paste(colnames(data.c),'.c', sep='')
 data.all <- cbind(data,data.c)
 
@@ -195,6 +193,28 @@ ggplot(data=data.all) +
 
 
 
+```
+
+```{r}
+
+ggplot(data=data.all,aes(x=crim,y=medv, color=lstat.c)) + 
+  geom_point() + 
+  ggtitle(paste(lw['medv'],'vs',lw['crim'],'by',lw['lstat'])) + 
+  stat_smooth(method=lm) +
+  labs(color=lw['lstat']) +
+  ylab(lw['medv']) + xlab(lw['crim'])
+
+```
+
+```{r}
+ggplot(data=data.all,aes(x=rm,y=medv, color=crim.c)) + 
+  geom_point() + 
+  stat_smooth(method=lm) +
+  ggtitle(paste(lw['medv'],'vs',lw['rm'],'by',lw['crim'])) +
+  ylab(lw['medv']) +
+  xlab(lw['rm']) +
+  labs(color=lw['crim'])
+  
 ```
 
 
