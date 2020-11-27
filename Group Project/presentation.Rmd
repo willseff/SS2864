@@ -176,4 +176,26 @@ mtext("Interesting Interactions", at=0, line=18, cex=1)
 
 
 ```
+## 3 Variable Plots
+```{r}
+
+colnames(data.c) <- paste(colnames(data.c),'.c', sep='')
+data.all <- cbind(data,data.c)
+
+ggplot(data=data.all) + 
+  geom_histogram(aes(x=crim, color=age.c, fill=age.c, y=0.333*..density..), 
+                 alpha=0.3, position='identity',bins=20) +
+  scale_color_manual(values = rainbow(3)) +
+  scale_fill_manual(values = rainbow(3)) + 
+  geom_density(aes(x=crim,color=age.c, y=0.333*..density..)) + 
+  ggtitle(paste('Distribution of Crime Rates by Suburb',lw['age'])) +
+  labs(fill="Proportion Before 1940") +
+  guides(color=FALSE) +
+  ylab('Density')
+
+
+
+```
+
+
 
