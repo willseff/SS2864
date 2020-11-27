@@ -30,6 +30,30 @@ dim(Boston)
 sapply(Boston,class)
 ```
 
+## Description of Features
+
+```{r}
+# dictionary like object to make retrieving the description of each variable easy
+lw <- list(crim = 'Crime Rate',
+           zn = 'Proportion over 25 000sqft',
+           indus = 'Proportion of Non-Businesses',
+           chas = 'Besides Charles River',
+           nox ='Nitrogen Oxide Concentration',
+           rm = 'Average Number of Rooms',
+           age = 'Proportion Built Before 1940',
+           dis = 'Distance From Employment Centres',
+           rad = 'Accessibility to Highways',
+           tax = 'Property Tax Rate / $ 10 000',
+           lstat = 'Percent Lower Status',
+           medv = 'Median value of Homes')
+
+lw['indus']
+
+```
+
+
+
+
 ## Histogram of All Features
 
 ```{r, echo=TRUE}
@@ -37,18 +61,30 @@ par(mfrow = c(3,5), mai = c(0.3, 0.6, 0.5, 0.1))
 
 mapply(function(x,y) hist(x,main=y),
        Boston,
-       colnames(Boston))
+       colnames(Boston)) %>% invisible()
 ```
+
+# Normality of "rm"
+```{r}
+par(mfrow = c(1,2))
+hist(data$rm, freq=FALSE, ylim = c(0,0.8))
+lines(density(data$rm), lwd=2, col='Blue')
+qqnorm(data$rm)
+
+```
+
+
 
 ## Feature Engineering 
 
 The "crim" variable is very skewed to the left. It is difficult to visualize results with it
 ```{r}
 par(mfrow=c(1,2), mar=c(4,5,2,2))
-hist(Boston$crim,breaks=100)
+hist(Boston$crim,breaks=40)
 plot(Boston$crim,Boston$medv, main = 'Home Value vs Crime Rate')
 
 ```
+
 Applying a log transformation produces better results
 ```{r}
 par(mfrow=c(1,2), mar=c(4,4,2,3))
@@ -65,6 +101,9 @@ data$black <- NULL
 
 ```
 
+## Correlation Plot
+
+A correlation plot is great for looking for relationships between features 
 
 ```{r}
 corrplot(cor(data), method='color', type='lower', diag=FALSE, cl.pos="r", 
@@ -75,19 +114,6 @@ mtext("Correlation Plot of Boston Dataset", at=6, line=2, cex=1)
 ```
 
 ```{r}
-lw <- list(crim = 'Crime Rate',
-           zn = 'Proportion over 25 000sqft',
-           indus = 'proportion of non business',
-           chas = 'Besides Charles River',
-           nox ='Nitrogen Oxide Concentration',
-           rm = 'Average Number of Rooms',
-           age = 'Proportion Built Before 1940',
-           dis = 'Distance From Employment Centres',
-           rad = 'Accessibility to Highways',
-           tax = 'Property Tax Rate / $ 10 000',
-           lstat = 'Percent Lower Status',
-           medv = 'Median value of Homes')
-
 two.plot <- function(x,y){
   wrapper <- function(x, ...) 
   {
@@ -116,10 +142,11 @@ summary(aov(data=data, medv ~ .^2 ))
 
 ```{r}
 bins <- c('low','medium','high')
-Boston.c <- data.frame(apply(data,2,function (x) cut(x,3,bins))) 
+data.c <- data.frame(apply(data,2,function (x) cut(x,3,bins))) 
 
-attach(Boston.c)
+attach(data.c)
 
+# ordered the levels to makes sure it appears in the right order in plots.
 ord <- function(x){
   return(factor(x,level=c('low','medium','high')))
 }
@@ -131,12 +158,12 @@ interaction.plot(ord(indus),
                  xlab='indus')
 
 interaction.plot(ord(crim),
-                 ord(rm),
+                 rm,
                  Boston$medv,
                  xlab='crim')
 
 interaction.plot(ord(crim),
-                 ord(lstat),
+                 lstat,
                  Boston$medv,
                  xlab='crim')
 
