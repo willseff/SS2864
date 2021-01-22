@@ -40,7 +40,7 @@ lw <- list(crim = 'Crime Rate',
            nox ='Nitrogen Oxide Concentration',
            rm = 'Average Number of Rooms',
            age = 'Proportion Built Before 1940',
-           dis = 'Distance From Employment Centres',
+           dis = 'Dist. From Employment Centres',
            rad = 'Accessibility to Highways',
            tax = 'Property Tax Rate / $ 10 000',
            lstat = 'Percent Lower Status',
@@ -57,7 +57,6 @@ lw['indus']
 
 ```{r, echo=TRUE}
 par(mfrow = c(3,5), mai = c(0.3, 0.6, 0.5, 0.1))
-
 mapply(function(x,y) hist(x,main=y),
        Boston,
        colnames(Boston)) %>% invisible()
@@ -78,20 +77,32 @@ qqnorm(data$rm)
 
 The "crim" variable is very skewed to the left. It is difficult to visualize results with it
 ```{r}
+
 par(mfrow=c(1,2), mar=c(4,5,2,2))
-hist(Boston$crim,breaks=40)
-plot(Boston$crim,Boston$medv, main = 'Home Value vs Crime Rate')
+hist(Boston$crim,breaks=40, 
+     main='Histogram of Crime Rate',
+     xlab='Crime Rate')
+plot(Boston$crim,
+     Boston$medv, 
+     main = 'Home Value vs Crime Rate', 
+     xlab='Crime Rate',
+     ylab = 'Median Home Value')
 
 ```
 
 Applying a log transformation produces better results
 ```{r}
+
 par(mfrow=c(1,2), mar=c(4,4,2,3))
 # apply log transformation
 data$crim <- log(Boston$crim)
-hist(data$crim)
-plot(data$crim,data$medv, main='medv vs crim')
+hist(data$crim, main='Histogram of log(Crime Rate)', 
+     xlab='log(Crime Rate)')
+plot(data$crim,data$medv, 
+     main='Median Home Value vs \nlog(Crime Rate) \n', 
+     xlab='log(Crime Rate)', ylab='Median Home Value')
 abline(lm(data$medv~data$crim), col='Blue')
+
 ```
 
 Drop "black" feature, unsure how to use parabolic transformation and uninvertible function
@@ -105,31 +116,37 @@ data$black <- NULL
 A correlation plot is great for looking for relationships between features 
 
 ```{r}
-corrplot(cor(data), method='color', type='lower', diag=FALSE, cl.pos="r", 
-         title = , addCoef.col = "black",
-         tl.srt = 90, number.cex = .6)
-mtext("Correlation Plot of Boston Dataset", at=6, line=2, cex=1)
+
+corrplot(cor(data), 
+         method='color', 
+         type='lower', 
+         diag=FALSE, 
+         cl.pos="r", 
+         title = , 
+         addCoef.col = "black",
+         tl.srt = 90, 
+         number.cex = .6)
+mtext("Correlation Plot of Boston Dataset", 
+      at=6, 
+      line=2, 
+      cex=1)
 
 ```
 
 ```{r}
 two.plot <- function(x,y){
-  wrapper <- function(x, ...) 
-  {
-    paste(strwrap(x, ...), collapse = "\n")
-  }
-  
-  g <- ggplot(data=data, aes_string(x=x,y=y))
-  g + geom_point() + geom_smooth(method = 'lm') +
-    ggtitle(wrapper(paste(lw[y],' vs ', lw[x]))) + ylab(lw[y]) + 
-    xlab(lw[x])
+  g <- ggplot(data=data, aes_string(x=x,y=y)) +
+    geom_point() + 
+    geom_smooth(method = 'lm') +
+    ggtitle(paste(lw[y],' \nvs ', lw[x])) + 
+    ylab(lw[y]) + 
+    xlab(lw[x]) 
 }
+
 # put onto same plot
 ggarrange(two.plot('rm','medv'),
           two.plot('age','dis'),
           ncol = 2, nrow = 1)
-
-
 ```
 
 A ANOVA model was built with all the possible interactions to look for interesting interactions
@@ -154,7 +171,8 @@ par(mfrow = c(2,2), mar = c(4,4,3,3))
 interaction.plot(ord(indus), 
                  lstat,
                  Boston$medv,
-                 xlab='indus')
+                 xlab='indus',
+                 trace.label = lw['lstat'])
 
 interaction.plot(ord(crim),
                  rm,
@@ -177,6 +195,8 @@ mtext("Interesting Interactions", at=0, line=18, cex=1)
 ```
 ## 3 Variable Plots
 ```{r}
+bins <- c('low','medium','high')
+data.c <- data.frame(apply(data,2,function (x) cut(x,3,bins))) 
 colnames(data.c) <- paste(colnames(data.c),'.c', sep='')
 data.all <- cbind(data,data.c)
 
@@ -189,7 +209,7 @@ ggplot(data=data.all) +
   ggtitle(paste('Distribution of Crime Rates by Suburb',lw['age'])) +
   labs(fill="Proportion Before 1940") +
   guides(color=FALSE) +
-  ylab('Density')
+  ylab('Density') + xlab(lw['crim'])
 
 
 
@@ -197,7 +217,8 @@ ggplot(data=data.all) +
 
 ```{r}
 
-ggplot(data=data.all,aes(x=crim,y=medv, color=lstat.c)) + 
+ggplot(data=data.all,
+       aes(x=crim,y=medv, color=lstat.c)) + 
   geom_point() + 
   ggtitle(paste(lw['medv'],'vs',lw['crim'],'by',lw['lstat'])) + 
   stat_smooth(method=lm) +
@@ -207,10 +228,14 @@ ggplot(data=data.all,aes(x=crim,y=medv, color=lstat.c)) +
 ```
 
 ```{r}
-ggplot(data=data.all,aes(x=rm,y=medv, color=crim.c)) + 
+
+ggplot(data=data.all,
+       aes(x=rm,y=medv, color=crim.c)) + 
   geom_point() + 
   stat_smooth(method=lm) +
-  ggtitle(paste(lw['medv'],'vs',lw['rm'],'by',lw['crim'])) +
+  ggtitle(paste(lw['medv'],
+                'vs',lw['rm'],
+                'by',lw['crim'])) +
   ylab(lw['medv']) +
   xlab(lw['rm']) +
   labs(color=lw['crim'])
