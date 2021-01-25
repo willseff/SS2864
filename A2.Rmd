@@ -1,0 +1,397 @@
+---
+title: "A2"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r, echo = T, results = 'hide'}
+library(MASS)
+library(vcd)
+library(ggplot2)
+library(tidyverse)
+library(reshape2)
+```
+
+```{r}
+# use barplot to compare the overall satisfaction levels of the supervisors and workers.
+supervisor<- aggregate(data=JobSatisfaction, Freq~supervisor, sum)
+supervisor <- cbind(supervisor,'supervisor')
+own <- aggregate(data=JobSatisfaction, Freq~own, sum)
+own <- cbind(own,'own')
+names(own) <- c('Satisfaction','Frequency','Type')
+names(supervisor) <- c('Satisfaction','Frequency','Type')
+
+plot.df <- rbind(supervisor,own)
+tab <- xtabs(data=plot.df, Frequency ~ Satisfaction+Type)
+
+# base graphics implementation
+barplot(prop.table(tab,2), legend=TRUE, main='Satisfaction Rate by Type of Worker',
+        ylim = c(0,1.5))
+
+# ggplot implementation
+ggplot(data=as.data.frame(tab)) + geom_bar(aes(x=Type,y=Freq, fill=Satisfaction),
+                                           stat='identity', position='fill') +
+  ggtitle("Satisifaction By Type of Worker")
+```
+
+
+```{r}
+# use barplot to compare the satisfaction levels of the supervisors and workers when management is bad.
+subset.job <- filter(JobSatisfaction, management=='bad')
+supervisor<- aggregate(data=subset.job, Freq~supervisor, sum)
+supervisor <- cbind(supervisor,'supervisor')
+own <- aggregate(data=subset.job, Freq~own, sum)
+own <- cbind(own,'own')
+names(own) <- c('Satisfaction','Frequency','Type')
+names(supervisor) <- c('Satisfaction','Frequency','Type')
+
+plot.df <- rbind(supervisor,own)
+tab <- xtabs(data=plot.df, Frequency ~ Satisfaction+Type)
+
+barplot(prop.table(tab,2), legend=TRUE, main='Satisfaction Rate when Management is Bad',
+        ylim=c(0,1.5))
+
+ggplot(data=as.data.frame(tab)) + geom_bar(aes(x=Type,y=Freq, fill=Satisfaction),
+                                           stat='identity', position='fill') + 
+  ggtitle('Satisfaction when Management is Bad')
+```
+
+
+```{r}
+# use barplot to compare the satisfaction levels of the supervisors and workers when management is good.
+subset.job <- filter(JobSatisfaction, management=='good')
+supervisor<- aggregate(data=subset.job, Freq~supervisor, sum)
+supervisor <- cbind(supervisor,'supervisor')
+own <- aggregate(data=subset.job, Freq~own, sum)
+own <- cbind(own,'own')
+names(own) <- c('Satisfaction','Frequency','Type')
+names(supervisor) <- c('Satisfaction','Frequency','Type')
+
+plot.df <- rbind(supervisor,own)
+tab <- xtabs(data=plot.df, Frequency ~ Satisfaction+Type)
+
+barplot(prop.table(tab,2), legend=TRUE, main='Satisfaction Rate when Management is Good',
+        ylim = c(0,1.5))
+ggplot(data=as.data.frame(tab)) + geom_bar(aes(x=Type,y=Freq, fill=Satisfaction),
+                                           stat='identity', position='fill') + 
+  ggtitle('Satisfaction when Management is Good')
+
+```
+
+Management has a lower satisfaction rate than workers. Having bad management reduces the rate of satisfaction in both supervisors and workers.
+
+```{r}
+# relationship between “class” and “survived”
+
+barplot.t <- function(num) {
+  barplot(prop.table(apply(Titanic,c(4,num),sum),2), 
+        main='Survival Rate', legend.text =  c('Died', 'Survived'),
+        ylim=c(0,1.5)) 
+}
+
+barplot.t(1)
+```
+
+```{r,echo=FALSE,results='hide',fig.keep='all'}
+#relationship between “sex” and “survived”
+barplot.t(2)
+
+```
+
+```{r}
+#relationship between “class” and “survived” for Females
+s.data <- melt(Titanic) %>% filter(Sex=='Female')
+
+barplot(prop.table(xtabs(data=s.data, value~Survived + Class),2), 
+        main='Survival Rates for Females by Class', legend=TRUE, 
+        legend.text = c('Died','Survived'), ylim= c(0,1.5))
+
+dat <- as.data.frame(prop.table(xtabs(data=s.data, value~Survived + Class),2))
+
+ggplot(data=dat) + geom_bar(aes(x=Class,y=Freq, fill=Survived),stat='identity') +
+  ggtitle('Survival Rates for Females by Class')
+```
+
+```{r}
+#relationship between “class” and “survived” for Males
+s.data <- melt(Titanic) %>% filter(Sex=='Male')
+
+# base graphics
+barplot(prop.table(xtabs(data=s.data, value~Survived + Class),2), 
+        main='Survival Rates for Males by Class', 
+        legend.text = c('Died','Survived'),
+        ylim = c(0,1.5))
+
+# ggplot
+dat <- as.data.frame(prop.table(xtabs(data=s.data, value~Survived + Class),2))
+ggplot(data=dat) + geom_bar(aes(x=Class,y=Freq, fill=Survived),stat='identity') +
+  ggtitle('Survival Rates for Males by Class')
+
+```
+
+```{r}
+# Identify all the categorical variables and change them into factors.
+summary(birthwt)
+head(birthwt)
+
+data <- birthwt
+
+# categorical according to viginette
+cols <- c("low", "race", "smoke", "ht",'ui')
+# convert to factor
+data[cols] <- lapply(data[cols], factor)
+
+```
+
+
+```{r}
+#study the relationship between variables “smoke” and “low” by constructing suitable tables and proportion tables.
+df.smoke.low <- data[,c('low', 'smoke')]
+df.smoke.low <- mutate(df.smoke.low, birthweight=recode(low,
+                                '0'='Normal',
+                                '1'='Low'))
+
+df.smoke.low <- mutate(df.smoke.low, smoke=recode(smoke,
+                                '0'='Non-Smoker',
+                                '1'='Smoker'))
+
+tab <- table(df.smoke.low[,c('smoke','birthweight')])
+
+# base graphics implementation
+barplot(tab, main='Low Birthweight vs Smoker, Totals', 
+        legend=TRUE, ylim = c(0,1.5))
+barplot(prop.table(tab,2), legend=TRUE, 
+        main='Low Birthweight vs Smoker, Proportions', ylim = c(0,1.5))
+
+# ggplot implementation
+ggplot(data=df.smoke.low) + geom_bar(aes(x=smoke, fill=birthweight)) + 
+  ggtitle('Low Birthweight vs Smoker, Totals')
+ggplot(data=df.smoke.low) + geom_bar(aes(x=smoke, fill=birthweight),
+                                     position='fill') + ylab('Proportion') +
+  ggtitle('Low Birthweight vs Smoker, Proportions')
+```
+
+```{r}
+#plot the histogram for “bwt” and “age”. use three different bandwidth for each histogram.
+
+par(mfrow=c(2,3))
+# base graphics implementation
+c(10,20,30) %>% lapply(function(x) hist(data$bwt, breaks=x))
+c(10,20,30) %>% lapply(function(x) hist(data$age, breaks=x))
+
+# ggplot2 implementation
+c(10,20,30) %>% lapply(function(x) ggplot(data=data) + 
+                         geom_histogram(aes(x=bwt), bins=x) +
+                         ggtitle('Histogram of Birthweights'))
+c(10,20,30) %>% lapply(function(x) ggplot(data=data) + 
+                         geom_histogram(aes(x=age), bins=x)+
+                         ggtitle('Histogram of Ages'))
+
+
+```
+
+
+```{r}
+#study the relationship between variables “race” and “bwt” using suitable numberical summaries (any kind of summary you see fit) and plots.
+
+df.race.bwt <- data[,c('race', 'bwt')]
+df.race.bwt <- mutate(df.race.bwt, race=recode(race,
+                                '1'='White',
+                                '2'='Black',
+                                '3'='Other'))
+
+# numerical summaries
+# mean
+aggregate(data=df.race.bwt,bwt~race, FUN=mean)
+# standard deviation
+aggregate(data=df.race.bwt,bwt~race, FUN=sd)
+
+# base graphic implementation
+par(mfrow=c(1,3))
+c('Black','White','Other') %>% 
+  lapply(function(x) hist(filter(df.race.bwt, race==x)$bwt,main=x, xlab = 'Birthweight'))
+
+# ggplot implementation
+ggplot(data=df.race.bwt) + 
+  geom_histogram(aes(x=bwt,color=race, fill=race, y=0.333*..density..), 
+                 alpha=0.3, position='identity',bins=20) +
+  scale_color_manual(values = rainbow(3)) +
+  scale_fill_manual(values = rainbow(3)) + 
+  geom_density(aes(x=bwt,color=race, y=0.333*..density..)) +
+  ggtitle('Distribution of Birthweight by Race') + 
+  ylab('Density') + xlab('Birthweight (grams)')
+
+```
+
+
+```{r}
+#study the relationship between variables “smoke” and “bwt” using suitable numberical summaries (any kind of summary you see fit) and plots.
+
+df.smoke.bwt <- data[,c('smoke', 'bwt')]
+df.smoke.bwt <- mutate(df.smoke.bwt, smoke=recode(smoke,
+                                '0'='Non-Smoker',
+                                '1'='Smoker'))
+
+# numerical summaries
+# mean
+aggregate(data=df.smoke.bwt,bwt~smoke, FUN=mean)
+# standard deviation
+aggregate(data=df.smoke.bwt,bwt~smoke, FUN=sd)
+
+# base graphics implementation
+hg1 <- hist(filter(df.smoke.bwt,smoke=='Non-Smoker')$bwt, 
+            main = 'Histogram of Non-Smoker Birthweights', xlab='Birthweight',
+            freq = FALSE)
+
+hg2 <- hist(filter(df.smoke.bwt,smoke=='Smoker')$bwt, 
+            main = 'Histogram of Smoker Birthweights', xlab='Birthweight',
+            freq = FALSE)
+
+c1 <- rgb(0, 0, 255, max = 255, alpha = 50, names = "blue")
+c2 <- rgb(0, 225, 0, max = 255, alpha = 50, names = "green")
+
+plot(hg1,col=c1, main='Birthweights by Smoker / Non-Smoker', xlab='Birthweight')
+plot(hg2,col=c2,add = TRUE)
+
+# ggplot implementation
+ggplot(data=df.smoke.bwt) + 
+  geom_histogram(aes(x=bwt,color=smoke, fill=smoke, y=0.333*..density..), alpha=0.3, position='identity',bins=20) +
+  scale_color_manual(values = rainbow(3)) +
+  scale_fill_manual(values = rainbow(3)) + 
+  geom_density(aes(x=bwt,color=smoke, y=0.333*..density..))
+
+```
+
+```{r}
+#plot the boxplot for “bwt” and “age”.
+df.age.bwt <- data[,c('age', 'bwt')]
+
+# base graphics implementation
+boxplot(data=df.age.bwt, bwt~age, main='Boxplot of Birthweight by Age')
+
+#ggplot implementation
+ggplot(data=data) + geom_boxplot(aes(y=bwt, group=age, x=age)) + 
+  ggtitle('Boxplot of Birthweight by Age')
+
+```
+
+```{r}
+# plot the scatter plot for “bwt” and “age”. What kind of relationship do you observe?
+
+# base graphics
+plot(data$age,data$bwt, main='Birthweight vs Age') 
+abline(lm(data$bwt ~data$age), col='Blue')
+
+# ggplot implementation
+ggplot(data=data,aes(y=bwt, x=age)) + geom_point( aes(y=bwt, x=age)) + stat_smooth(method=lm) +
+  ggtitle('Birthweight vs Age')
+
+```
+
+```{r}
+# compare the scatter plot for “bwt” and “age” for people of different race.
+# ggplot
+ggplot(data=data, aes(y=bwt, x=age, color=race)) + geom_point() + stat_smooth(method=lm) +
+  ggtitle('Birthweight vs Age by Race')
+
+# base graphics
+par(mfrow=c(1,3),oma = c(0, 0, 2, 0))
+data1 <- filter(data, race=='1')
+plot(data1$age, data1$bwt, col=data1$race, 
+     main='White') + abline(lm(data1$bwt~data1$age))
+
+data2 <- filter(data, race=='2')
+plot(data2$age, data2$bwt, col=data2$race,
+     main='Black') + abline(lm(data2$bwt~data2$age))
+
+data3 <- filter(data, race=='3')
+plot(data3$age, data3$bwt, col=data3$race, 
+     main='Other') + abline(lm(data3$bwt~data3$age))
+
+mtext('Birthweight vs Age by Race', outer = TRUE, cex = 1.5)
+
+```
+
+
+```{r}
+stu <- read.delim('StudentsPerformance.csv', header=TRUE, sep = ',')
+dim(stu)
+summary(stu)
+head(stu)
+
+p <- ggplot(data=stu)
+
+#Find one categorical variable and then use barplot to show the distribution of its values. If your data set does not have a categorical variable, create one by using function “cut”. Or, you could try another dataset.
+
+barplot(table(stu$test.preparation.course), main = "Test Preperation Course")
+
+p + geom_bar(aes(x=test.preparation.course)) + ggtitle('Test Preparation Course')
+
+```
+
+```{r}
+# Find one continuous variable and then use histogram and boxplot to show the distribution of its values. Try different number of breaks.
+
+#base grahics
+hist(stu$math.score, breaks=20)
+
+# ggplot
+p + geom_histogram(aes(math.score)) + ggtitle('Histogram of Math Score')
+```
+
+```{r}
+#Show the relationship between two categorical variables using tables and plots.
+
+# base graphics
+stu[,c('parental.level.of.education','race.ethnicity')] %>% table() %>% prop.table(2) %>%  barplot(legend=TRUE, ylim=c(0,2))
+
+# ggplot
+p + geom_bar(aes(x=race.ethnicity,fill=parental.level.of.education), position='fill') + 
+  ggtitle('Parental Level of Education by Race')
+
+```
+
+```{r}
+#Show the relationship between a categorical and a numerical variable using numerical comparisons (any comparison you think make sense) and plots
+#interaction.plot(stu$test.preparation.course,stu$race.ethnicity, stu$math.score)
+
+boxplot(stu$reading.score ~ stu$lunch, main='Reading Score vs Lunch')
+
+p + geom_boxplot(aes(x=lunch,y=reading.score)) + ggtitle('Reading Score vs Lunch')
+
+```
+
+```{r}
+#Show the relationship between two continuous variables useing using numerical comparisons (any comparison you think make sense) and plots.
+summary(lm(stu$math.score~ stu$reading.score))
+
+# base graphics 
+plot(stu$math.score, stu$reading.score)
+ 
+# ggplot
+p + geom_point(aes(x=math.score,y=reading.score)) + ggtitle('Reading Score vs Math Score')
+
+```
+
+```{r}
+#Identify a research question of your own about the dataset and try to answer it using simple statistical summary and graphics.
+
+# Is there differences in the writing score between races?
+
+# statistical summary
+aggregate(stu, list(stu$race.ethnicity), mean)[,c('Group.1','writing.score')]
+
+# base graphics
+boxplot(stu$writing.score ~ stu$race.ethnicity, main = 'Writing Score by Ethnicity')
+
+# ggplot2
+p + geom_boxplot(aes(y=writing.score, x=race.ethnicity)) + ggtitle('Boxplot of Writing Score by Race')
+```
+
+
+

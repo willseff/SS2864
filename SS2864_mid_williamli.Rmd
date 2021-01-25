@@ -1,0 +1,128 @@
+---
+title: "Midterm"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+
+```{r}
+set.seed(2864)
+# a
+x <- sample(c(1:100),1000, replace=TRUE)
+
+# b
+sum((x %% 10) == 0)
+
+# c
+y <- x[c(TRUE,FALSE)]
+length(y)
+head(y,10)
+
+# d
+z <- x[x%%2 == 1]
+head(z,10)
+
+```
+
+## Question 2
+
+
+```{r}
+(2 ^ c(1:50)) > (c(1:50) ^ 3)
+```
+
+## Question 3
+
+
+```{r}
+# a
+dieRolls <- sample(1:6,3000,replace=TRUE)
+head(dieRolls,20)
+
+# b
+breaks <- c(0,1,2,3,4,5,6)
+tags <- c('One','Two','Three', 'Four', 'Five', 'Six')
+dieRolls.f <- cut(dieRolls,breaks=breaks,labels=tags)
+
+# c
+sum(dieRolls <= 3)/length(dieRolls)
+# yes this matches our expectation because we expect around half of the dice rolls
+# to be 1,2 or 3 in a fair die
+
+# d
+par(mar=c(5,5,5,5))
+barplot(table(dieRolls.f), main='Dice Rolls', ylab='Frequency', legend=TRUE,
+        args.legend = list(x = "topright", bty = "n", inset=c(-0.15, 0)),
+        col=c('red','blue','purple', 'green','yellow','grey'))
+
+```
+## Question 4
+
+```{r}
+set.seed(2864)
+x <- rnorm(1000,1,2)
+# we know this has a skew of 0
+
+numerator <- sum((x - mean(x))^3)/length(x)
+denominator <- (sum((x - mean(x))^2)^(3/2))/length(x)
+
+numerator/denominator
+
+```
+
+
+## Question 5
+
+```{r}
+# a
+names(mtcars)
+
+# b
+df <- mtcars[mtcars$am==0 & mtcars$wt > mean(mtcars$wt),c('mpg', 'cyl', 'wt','am')]
+
+# c
+table(mtcars$cyl,mtcars$am)
+# yes vehicles with more cylinders are more likely to have a manual transmission
+
+# d
+#barplot(table(mtcars$am, mtcars$cyl))
+barplot(prop.table(table(mtcars$am,mtcars$cyl),margin=2), main='Proportions of Automatic and Manual by Cylinder', legend=TRUE)
+
+# yes the graph of the proportions confirms the answer in part c
+
+
+```
+## Question 6
+
+```{r}
+
+# 1
+set.seed(2864)
+x <- rnorm(100,0,1)
+y <- rnorm(100,0.5,1)
+
+head(abs(x - y),10)
+head(sign(x - y),10)
+
+# 2
+rank(-abs(x - y))
+ri <- rank(-abs(x - y))
+
+# 3
+dfWilcox <- data.frame(xi=x,yi=y,Ri=rank(-abs(x - y)))
+
+# 4
+abs(sum(apply(dfWilcox, 1, function(x) sign(x['xi'] - x['yi']) * x['Ri'])))
+abs(sum(sign(x-y)* ri))
+
+
+```
+
+
+
+

@@ -1,0 +1,84 @@
+---
+title: "Assignment 1"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Question 1
+```{r}
+# question 1
+apply(Titanic, c(1, 4), sum)
+apply(Titanic, c(2, 4), sum)
+apply(Titanic, c(3, 4), sum)
+
+```
+
+
+## Question 2
+
+```{r}
+# question 2
+set.seed(1234)
+k <- rnorm(1000)
+sum(k < -1.65 | k > 1.65)/1000
+```
+
+10 % of the generate numbers are outside the -1.645, 1.645 limit. This matches our expectation because 1.65 is 1.65 standard deviations from the mean and we know that 10% of values should be outside the 1.65 standard deviation range. 
+## Question 3
+
+```{r}
+# question 3
+breaks <- c(-99999,-1.645,1.645,99999)
+x <- rnorm(1000)
+t <- table(cut(x,breaks))
+names(t) <- c('small', 'medium', 'large')
+t
+```
+
+## Question 4
+
+```{r}
+# question 4
+rnd <- round(runif(1000,0,1000))
+sum(rnd %% 5 == 0)
+
+```
+ This matches out expectation. Randomly generated numbers should have 20% divisible by 5 because 20% of all numbers are divisible by 5.
+
+## Question 5
+
+```{r}
+# question 5
+f_day <- function(year) {
+  return (paste(toString(year),'-01-01',sep=''))
+}
+
+l_day <- function(year) {
+  return (paste(toString(year),'-12-31',sep=''))
+} 
+
+all_days <- function(year){
+  return(table(weekdays(seq(as.Date(f_day(year)), as.Date(l_day(year)), by="days"))))
+  
+}
+
+for (year in c(2011:2020)) {
+  print(year)
+  print(all_days(year))
+}
+
+```
+
+## Question 6 
+
+```{r}
+dat <- read.delim('Groceries_dataset.csv', header=TRUE)
+
+# number of rows and columns
+dim(dat)
+
+#summary of data
+summary(dat)
+
+```
